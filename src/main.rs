@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 
 fn main() {
     // Get the command line arguments
@@ -23,13 +24,10 @@ fn main() {
 
     // Iterate over the provided folders
     for folder in &args[1..] {
-        // Read the directory
-        let dir = fs::read_dir(folder).unwrap();
-
-        // Iterate over the files in the directory
-        for file in dir {
-            let file = file.unwrap();
-            let file_name = file.file_name().to_str().unwrap().to_string();
+        // Walk the directory tree
+        for entry in WalkDir::new(folder) {
+            let entry = entry.unwrap();
+            let file_name = entry.file_name().to_str().unwrap().to_string();
 
             // Check if the file is a pdf
             if file_name.ends_with(".pdf") {
@@ -39,7 +37,7 @@ fn main() {
                     unique_files.insert(file_name.clone());
 
                     // Copy the file to the output folder
-                    let src = file.path();
+                    let src = entry.path();
                     let dst = output_folder.join(file_name);
                     fs::copy(src, dst).unwrap();
                 }
